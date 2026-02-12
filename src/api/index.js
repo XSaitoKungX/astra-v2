@@ -60,7 +60,7 @@ export function createAPI(client) {
   app.get('/api', (req, res) => {
     res.json({
       name: process.env.BOT_NAME || 'Astra',
-      version: process.env.BOT_VERSION || '5.0.0',
+      version: process.env.BOT_VERSION || '2.0.0',
       api: 'v1',
       status: 'online',
       documentation: process.env.DOCS_URL || null,
