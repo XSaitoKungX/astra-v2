@@ -1,0 +1,306 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #7C3AED;
+  --color-primary-light: #A78BFA;
+  --color-primary-dark: #5B21B6;
+  --color-accent: #06B6D4;
+  --color-accent-light: #22D3EE;
+  --color-dark: #030308;
+  --color-dark-card: #08081a;
+  --color-dark-card-hover: #0e0e24;
+  --color-dark-surface: #0a0a1e;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--color-dark);
+  color: #e2e8f0;
+  overflow-x: hidden;
+}
+
+a { text-decoration: none; color: inherit; }
+
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: rgba(5, 5, 15, 0.5); }
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(124, 58, 237, 0.4), rgba(6, 182, 212, 0.3));
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(124, 58, 237, 0.6), rgba(6, 182, 212, 0.5));
+}
+
+/* ═══════════════════ KEYFRAMES ═══════════════════ */
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-20px) scale(1.02); }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes slide-left {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes glow-ring {
+  0%, 100% { box-shadow: 0 0 20px rgba(124, 58, 237, 0.5), 0 0 60px rgba(124, 58, 237, 0.15); }
+  50% { box-shadow: 0 0 35px rgba(124, 58, 237, 0.7), 0 0 90px rgba(124, 58, 237, 0.25); }
+}
+
+@keyframes glow-border {
+  0%, 100% { border-color: rgba(124, 58, 237, 0.15); }
+  50% { border-color: rgba(124, 58, 237, 0.45); }
+}
+
+@keyframes neon-pulse {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.05); }
+}
+
+@keyframes sparkle-fade {
+  0% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0) translateY(-10px); }
+}
+
+@keyframes particle-float {
+  0% { transform: translateY(0) translateX(0); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateY(-100vh) translateX(30px); opacity: 0; }
+}
+
+@keyframes scan-line {
+  0% { top: -5%; }
+  100% { top: 105%; }
+}
+
+@keyframes border-flow {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
+@keyframes energy-pulse {
+  0%, 100% { box-shadow: 0 0 15px rgba(124, 58, 237, 0.2), inset 0 0 15px rgba(124, 58, 237, 0.05); }
+  50% { box-shadow: 0 0 30px rgba(124, 58, 237, 0.35), inset 0 0 30px rgba(124, 58, 237, 0.1); }
+}
+
+/* ═══════════════════ ANIME CARD ═══════════════════ */
+
+.anime-card {
+  background: linear-gradient(
+    135deg,
+    rgba(8, 8, 26, 0.95) 0%,
+    rgba(12, 8, 32, 0.98) 50%,
+    rgba(8, 8, 26, 0.95) 100%
+  );
+  border: 1px solid rgba(124, 58, 237, 0.12);
+  backdrop-filter: blur(12px);
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.anime-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    rgba(124, 58, 237, 0.0) 0%,
+    rgba(124, 58, 237, 0.15) 50%,
+    rgba(6, 182, 212, 0.0) 100%
+  );
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.anime-card:hover {
+  border-color: rgba(124, 58, 237, 0.35);
+  box-shadow:
+    0 0 40px rgba(124, 58, 237, 0.08),
+    0 0 80px rgba(124, 58, 237, 0.04),
+    0 8px 32px rgba(0, 0, 0, 0.5);
+  transform: translateY(-1px);
+}
+
+.anime-card:hover::before {
+  opacity: 1;
+}
+
+/* ═══════════════════ GLOW TEXT ═══════════════════ */
+
+.glow-text {
+  text-shadow:
+    0 0 10px rgba(124, 58, 237, 0.4),
+    0 0 30px rgba(124, 58, 237, 0.2),
+    0 0 60px rgba(124, 58, 237, 0.1);
+}
+
+/* ═══════════════════ AVATAR RING ═══════════════════ */
+
+.avatar-ring {
+  border-radius: 50%;
+  padding: 3px;
+  background: linear-gradient(135deg, #7C3AED, #06B6D4, #A78BFA, #7C3AED);
+  background-size: 300% 300%;
+  animation: glow-ring 3s ease-in-out infinite, gradient-shift 6s ease infinite;
+}
+
+/* ═══════════════════ ANIME BACKGROUND ═══════════════════ */
+
+.anime-bg {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.anime-bg-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(100px);
+  animation: neon-pulse 8s ease-in-out infinite;
+}
+
+.anime-bg-orb-1 {
+  width: 600px;
+  height: 600px;
+  top: -15%;
+  left: -10%;
+  background: radial-gradient(circle, rgba(124, 58, 237, 0.18) 0%, transparent 70%);
+  animation-delay: 0s;
+}
+
+.anime-bg-orb-2 {
+  width: 500px;
+  height: 500px;
+  top: 30%;
+  right: -12%;
+  background: radial-gradient(circle, rgba(6, 182, 212, 0.12) 0%, transparent 70%);
+  animation-delay: 3s;
+}
+
+.anime-bg-orb-3 {
+  width: 450px;
+  height: 450px;
+  bottom: -10%;
+  left: 20%;
+  background: radial-gradient(circle, rgba(167, 139, 250, 0.1) 0%, transparent 70%);
+  animation-delay: 5s;
+}
+
+.anime-bg-orb-4 {
+  width: 350px;
+  height: 350px;
+  top: 60%;
+  left: 60%;
+  background: radial-gradient(circle, rgba(236, 72, 153, 0.08) 0%, transparent 70%);
+  animation-delay: 7s;
+}
+
+/* Floating particles */
+.anime-bg-particle {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: rgba(124, 58, 237, 0.6);
+  box-shadow: 0 0 6px rgba(124, 58, 237, 0.4);
+  animation: particle-float linear infinite;
+}
+
+/* Scan line overlay */
+.anime-bg-scanline {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(124, 58, 237, 0.015) 2px,
+    rgba(124, 58, 237, 0.015) 4px
+  );
+  pointer-events: none;
+}
+
+/* Grid overlay */
+.anime-bg-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(124, 58, 237, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(124, 58, 237, 0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+  mask-image: radial-gradient(ellipse at 50% 50%, black 20%, transparent 70%);
+  pointer-events: none;
+}
+
+/* ═══════════════════ NEON BUTTON ═══════════════════ */
+
+.neon-btn {
+  position: relative;
+  overflow: hidden;
+}
+
+.neon-btn::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: linear-gradient(90deg, #7C3AED, #06B6D4, #A78BFA, #7C3AED);
+  background-size: 200% 100%;
+  border-radius: inherit;
+  z-index: -1;
+  opacity: 0;
+  animation: border-flow 3s linear infinite;
+  transition: opacity 0.3s ease;
+}
+
+.neon-btn:hover::after {
+  opacity: 1;
+}
+
+/* ═══════════════════ ENERGY CARD (special) ═══════════════════ */
+
+.energy-card {
+  animation: energy-pulse 4s ease-in-out infinite;
+}
+
+/* ═══════════════════ NAVBAR ANIME ═══════════════════ */
+
+.navbar-anime {
+  background: linear-gradient(
+    135deg,
+    rgba(8, 8, 26, 0.85) 0%,
+    rgba(12, 8, 32, 0.9) 100%
+  );
+  border: 1px solid rgba(124, 58, 237, 0.1);
+  backdrop-filter: blur(20px) saturate(1.2);
+}

@@ -1,0 +1,127 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Guild Settings ─────────────────────────────────────────────
+model Guild {
+  id        String   @id // Discord Guild ID
+  name      String
+  icon      String?
+  ownerId   String
+  locale    String   @default("en")
+  prefix    String   @default("/")
+  premium   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Module settings
+  modLogChannel   String?
+  welcomeChannel  String?
+  goodbyeChannel  String?
+  logChannel      String?
+  verifyChannel   String?
+  verifyRole      String?
+  muteRole        String?
+  djRole          String?
+
+  // Relations
+  commandLogs CommandLog[]
+  warnings    Warning[]
+  modActions  ModAction[]
+
+  @@map("guilds")
+}
+
+// ─── Command Logs ───────────────────────────────────────────────
+model CommandLog {
+  id        Int      @id @default(autoincrement())
+  guildId   String
+  userId    String
+  command   String
+  args      String?
+  channel   String?
+  success   Boolean  @default(true)
+  error     String?
+  createdAt DateTime @default(now())
+
+  guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  @@index([guildId])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("command_logs")
+}
+
+// ─── AutoMod Settings ─────────────────────────────────────────────
+model AutoMod {
+  id              String  @id // Guild ID
+  enabled         Boolean @default(false)
+  antiSpam        Boolean @default(false)
+  antiSpamLimit   Int     @default(5)     // messages per interval
+  antiSpamInterval Int    @default(5)     // seconds
+  antiLink        Boolean @default(false)
+  antiInvite      Boolean @default(false)
+  badWords        Boolean @default(false)
+  badWordsList    String  @default("[]")  // JSON array
+  capsFilter      Boolean @default(false)
+  capsThreshold   Int     @default(70)    // percentage
+  emojiFilter     Boolean @default(false)
+  emojiLimit      Int     @default(10)
+  logChannel      String?
+  exemptRoles     String  @default("[]")  // JSON array of role IDs
+  exemptChannels  String  @default("[]")  // JSON array of channel IDs
+
+  @@map("automod")
+}
+
+// ─── Warnings ─────────────────────────────────────────────────────
+model Warning {
+  id        Int      @id @default(autoincrement())
+  guildId   String
+  userId    String
+  moderator String
+  reason    String
+  createdAt DateTime @default(now())
+
+  guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  @@index([guildId, userId])
+  @@index([createdAt])
+  @@map("warnings")
+}
+
+// ─── Mod Actions (ban, kick, timeout, etc.) ───────────────────────
+model ModAction {
+  id        Int      @id @default(autoincrement())
+  guildId   String
+  userId    String
+  moderator String
+  action    String   // ban, kick, timeout, warn, clear, slowmode, lock, unlock
+  reason    String?
+  duration  Int?     // in seconds, for timeout
+  createdAt DateTime @default(now())
+
+  guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  @@index([guildId, userId])
+  @@index([guildId, action])
+  @@index([createdAt])
+  @@map("mod_actions")
+}
+
+// ─── Bot Stats (aggregated) ─────────────────────────────────────
+model BotStats {
+  id            Int      @id @default(autoincrement())
+  guildCount    Int      @default(0)
+  userCount     Int      @default(0)
+  commandsUsed  Int      @default(0)
+  uptime        BigInt   @default(0)
+  recordedAt    DateTime @default(now())
+
+  @@map("bot_stats")
+}

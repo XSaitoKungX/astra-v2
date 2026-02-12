@@ -1,0 +1,47 @@
+{
+  "name": "astra-bot",
+  "version": "1.0.0",
+  "description": "Astra v2 - All-in-One Discord Bot with Web Dashboard",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "bun run build:dashboard && bun run index.js",
+    "dev": "concurrently -n bot,dash -c blue,magenta \"bun --watch run index.js\" \"cd dashboard && bun run dev\"",
+    "dev:bot": "bun --watch run index.js",
+    "dev:dashboard": "cd dashboard && bun run dev",
+    "build:dashboard": "cd dashboard && bun run build",
+    "db:generate": "bunx prisma generate",
+    "db:push": "bunx prisma db push",
+    "db:migrate": "bunx prisma migrate deploy",
+    "db:migrate:dev": "bunx prisma migrate dev",
+    "db:studio": "bunx prisma studio",
+    "commands:deploy": "bun run src/bot/deploy-commands.js"
+  },
+  "keywords": ["discord", "bot", "dashboard", "astra"],
+  "author": "Astra Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.0.2",
+    "@prisma/adapter-pg": "^7.3.0",
+    "@prisma/client": "^7.3.0",
+    "chalk": "^5.6.2",
+    "compression": "^1.8.1",
+    "concurrently": "^9.2.1",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "discord.js": "14.25.1",
+    "dotenv": "^17.2.4",
+    "express": "^5.2.1",
+    "express-session": "^1.19.0",
+    "helmet": "^8.1.0",
+    "pg": "^8.18.0",
+    "shoukaku": "^4.2.0",
+    "winston": "^3.19.0"
+  },
+  "devDependencies": {
+    "prisma": "^7.3.0"
+  }
+}
