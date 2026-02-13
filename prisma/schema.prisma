@@ -114,6 +114,339 @@ model ModAction {
   @@map("mod_actions")
 }
 
+// ─── User Profiles ──────────────────────────────────────────────
+model UserProfile {
+  id            String   @id // Discord User ID
+  bio           String?  @db.Text
+  accentColor   String?  // hex color for profile accent
+  bgImage       String?  // custom background image URL
+  bgColor       String?  // fallback background color
+  layout        String   @default("default") // default, compact, minimal
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  links UserProfileLink[]
+
+  @@map("user_profiles")
+}
+
+// ─── User Profile Links ─────────────────────────────────────────
+model UserProfileLink {
+  id        Int      @id @default(autoincrement())
+  profileId String
+  label     String   // e.g. "GitHub", "Twitter", "Website"
+  url       String   // original URL
+  slug      String   @unique // short link slug for /go/:slug
+  icon      String?  // icon identifier
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+
+  profile UserProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId])
+  @@map("user_profile_links")
+}
+
+// ─── User Stats (global, aggregated across all servers) ─────────
+model UserStats {
+  id            String   @id // Discord User ID
+  messages      Int      @default(0)
+  words         Int      @default(0)
+  emojis        Int      @default(0)
+  gifs          Int      @default(0)
+  stickers      Int      @default(0)
+  voiceMinutes  Int      @default(0)
+  invites       Int      @default(0)
+  level         Int      @default(0)
+  xp            Int      @default(0)
+  cash          Int      @default(0)
+  bank          Int      @default(0)
+  birthday      String?  // ISO date string
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  musicStats UserMusicStats[]
+
+  @@map("user_stats")
+}
+
+// ─── User Music Stats ───────────────────────────────────────────
+model UserMusicStats {
+  id         Int      @id @default(autoincrement())
+  userId     String
+  songName   String
+  artistName String
+  platform   String   // youtube, spotify, soundcloud, apple
+  playCount  Int      @default(1)
+  lastPlayed DateTime @default(now())
+
+  user UserStats @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, songName, artistName])
+  @@index([userId])
+  @@index([userId, playCount])
+  @@map("user_music_stats")
+}
+
+// ─── Server Reviews ─────────────────────────────────────────────
+model ServerReview {
+  id        Int      @id @default(autoincrement())
+  serverId  String   // Discord Guild ID
+  userId    String   // Discord User ID
+  username  String   // cached display name
+  avatar    String?  // cached avatar URL
+  rating    Int      // 1-5 stars
+  comment   String?  @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([serverId, userId]) // one review per user per server
+  @@index([serverId])
+  @@index([serverId, rating])
+  @@map("server_reviews")
+}
+
+// ─── Server Stats (aggregated) ──────────────────────────────────
+model ServerStats {
+  id            String   @id // Discord Guild ID
+  messages      Int      @default(0)
+  words         Int      @default(0)
+  voiceMinutes  Int      @default(0)
+  totalEconomy  Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("server_stats")
+}
+
+// ─── User Level (per-server leveling data) ──────────────────────
+model UserLevel {
+  id            Int      @id @default(autoincrement())
+  guildId       String
+  userId        String
+  xp            Int      @default(0)       // current message XP (resets on level up)
+  totalXp       Int      @default(0)       // total message XP (cumulative)
+  level         Int      @default(0)       // message level
+  messages      Int      @default(0)
+  voiceMinutes  Int      @default(0)
+  voiceXp       Int      @default(0)       // current voice XP (resets on level up)
+  voiceTotalXp  Int      @default(0)       // total voice XP (cumulative)
+  voiceLevel    Int      @default(0)       // voice level
+  lastMessageXp DateTime? // cooldown tracking
+  lastVoiceXp   DateTime? // voice XP tracking
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([guildId, userId])
+  @@index([guildId, level(sort: Desc)])
+  @@index([guildId, totalXp(sort: Desc)])
+  @@index([guildId, voiceLevel(sort: Desc)])
+  @@index([guildId, voiceTotalXp(sort: Desc)])
+  @@index([userId])
+  @@map("user_levels")
+}
+
+// ─── Level Settings (per-server configuration) ──────────────────
+model LevelSettings {
+  id                  String  @id // Guild ID
+  enabled             Boolean @default(false)
+  messageXpMin        Int     @default(15)
+  messageXpMax        Int     @default(25)
+  messageCooldown     Int     @default(60)    // seconds between XP gains
+  voiceXpPerMinute    Int     @default(5)
+  voiceXpCooldown     Int     @default(60)    // seconds
+  xpMultiplier        Float   @default(1.0)
+  levelUpChannel      String? // channel ID for level-up announcements, null = current channel
+  levelUpMode         String  @default("embed") // "embed", "message", "both"
+  levelUpMessage      String? @db.Text // custom message, supports {user} {level} {role} placeholders
+  levelUpEmbed        String? @db.Text // JSON: full embed config (title, description, color, thumbnail, image, footer, author, fields)
+  stackRoles          Boolean @default(true)  // keep previous role rewards
+  noXpRoles           String  @default("[]")  // JSON array of role IDs that don't earn XP
+  noXpChannels        String  @default("[]")  // JSON array of channel IDs where XP is disabled
+
+  roleRewards LevelRoleReward[]
+
+  @@map("level_settings")
+}
+
+// ─── Level Role Rewards ─────────────────────────────────────────
+model LevelRoleReward {
+  id       Int    @id @default(autoincrement())
+  guildId  String
+  level    Int
+  roleId   String
+
+  settings LevelSettings @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  @@unique([guildId, level, roleId])
+  @@index([guildId])
+  @@map("level_role_rewards")
+}
+
+// ─── Rank Card Config (per-user customization) ──────────────────
+model RankCardConfig {
+  id              String  @id // Discord User ID
+  theme           String  @default("default") // default, dark, light, anime, neon, pastel, ocean, sunset, sakura
+  backgroundColor String  @default("#23272a")
+  progressColor   String  @default("#7C3AED") // progress bar fill
+  textColor       String  @default("#ffffff")
+  accentColor     String  @default("#7C3AED")
+  overlayOpacity  Int     @default(90)        // 0-100
+  backgroundImage String? // URL to custom background image
+  layout          String  @default("default") // default, compact, minimal
+
+  @@map("rank_card_configs")
+}
+
+// ─── Bot Reviews (website reviews for the bot itself) ───────────
+model BotReview {
+  id        Int      @id @default(autoincrement())
+  userId    String   // Discord User ID
+  username  String   // cached display name
+  avatar    String?  // cached avatar URL
+  rating    Int      // 1-5 stars
+  comment   String?  @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId]) // one review per user
+  @@index([rating])
+  @@index([createdAt])
+  @@map("bot_reviews")
+}
+
+// ─── Economy Settings (per-guild configuration) ─────────────────
+model EconomySettings {
+  id                String  @id // Guild ID
+  enabled           Boolean @default(false)
+  currencyName      String  @default("Coins")
+  currencySymbol    String  @default("🪙")
+  startingBalance   Int     @default(100)
+  dailyMin          Int     @default(100)
+  dailyMax          Int     @default(300)
+  dailyStreak       Int     @default(50)   // bonus per streak day
+  workMin           Int     @default(50)
+  workMax           Int     @default(200)
+  workCooldown      Int     @default(3600) // seconds
+  robChance         Int     @default(40)   // percent
+  robMin            Int     @default(10)   // percent of target's cash
+  robMax            Int     @default(30)   // percent of target's cash
+  robCooldown       Int     @default(7200) // seconds
+  robFine           Int     @default(20)   // percent of own cash lost on fail
+  bankInterest      Float   @default(0.5)  // percent per day
+  maxBankBalance    Int     @default(1000000)
+  logChannel        String?
+
+  shopItems ShopItem[]
+
+  @@map("economy_settings")
+}
+
+// ─── Economy User (per-guild per-user balances) ──────────────────
+model EconomyUser {
+  id            Int       @id @default(autoincrement())
+  guildId       String
+  userId        String
+  cash          Int       @default(0)
+  bank          Int       @default(0)
+  totalEarned   Int       @default(0)
+  totalSpent    Int       @default(0)
+  dailyStreak   Int       @default(0)
+  lastDaily     DateTime?
+  lastWork      DateTime?
+  lastRob       DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  inventory UserInventory[]
+
+  @@unique([guildId, userId])
+  @@index([guildId, cash(sort: Desc)])
+  @@index([guildId, bank(sort: Desc)])
+  @@index([userId])
+  @@map("economy_users")
+}
+
+// ─── Shop Items (per-guild) ──────────────────────────────────────
+model ShopItem {
+  id          Int      @id @default(autoincrement())
+  guildId     String
+  name        String
+  description String?
+  price       Int
+  emoji       String   @default("📦")
+  type        String   @default("custom") // role, giftcard, boost_xp, boost_coins, boost_daily, custom
+  category    String   @default("general") // general, roles, boosts, specials
+  roleId      String?  // for type=role: grants this role on purchase
+  boostValue  Float?   // for boosts: multiplier (e.g. 1.5 = +50%)
+  duration    Int?     // for boosts: duration in hours
+  maxStock    Int?     // null = unlimited
+  sold        Int      @default(0)
+  usable      Boolean  @default(false) // can be "used" from inventory
+  useMessage  String?  // message shown when used
+  requireRole String?  // optional: require this role to buy
+  enabled     Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  settings  EconomySettings @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  inventory UserInventory[]
+
+  @@index([guildId])
+  @@index([guildId, category])
+  @@map("shop_items")
+}
+
+// ─── User Inventory (per-guild per-user items) ───────────────────
+model UserInventory {
+  id        Int      @id @default(autoincrement())
+  guildId   String
+  userId    String
+  itemId    Int
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+
+  owner EconomyUser @relation(fields: [guildId, userId], references: [guildId, userId], onDelete: Cascade)
+  item  ShopItem    @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@unique([guildId, userId, itemId])
+  @@index([guildId, userId])
+  @@map("user_inventory")
+}
+
+// ─── Active Boosts (per-guild per-user) ──────────────────────────
+model ActiveBoost {
+  id        Int      @id @default(autoincrement())
+  guildId   String
+  userId    String
+  type      String   // boost_xp, boost_coins, boost_daily
+  value     Float    // multiplier (e.g. 1.5)
+  expiresAt DateTime
+  itemId    Int?     // which shop item activated this
+  createdAt DateTime @default(now())
+
+  @@index([guildId, userId])
+  @@index([guildId, userId, type])
+  @@map("active_boosts")
+}
+
+// ─── Economy Transactions ────────────────────────────────────────
+model EconomyTransaction {
+  id        Int      @id @default(autoincrement())
+  guildId   String
+  userId    String
+  type      String   // daily, work, rob, rob_fail, deposit, withdraw, buy, sell, use, gamble_win, gamble_lose, transfer, interest
+  amount    Int
+  balance   Int      // balance after transaction
+  targetId  String?  // for rob/transfer: the other user
+  note      String?
+  createdAt DateTime @default(now())
+
+  @@index([guildId, userId])
+  @@index([guildId, createdAt])
+  @@index([guildId, type])
+  @@map("economy_transactions")
+}
+
 // ─── Bot Stats (aggregated) ─────────────────────────────────────
 model BotStats {
   id            Int      @id @default(autoincrement())

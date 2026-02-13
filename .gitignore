@@ -1,32 +1,62 @@
-# Dependencies
+# ╔═══════════════════════════════════════════════════════════════╗
+# ║  Astra v2 — Public Showcase Repository                        ║
+# ║  Source code is proprietary. Only showcase files are public.  ║
+# ║  Purchase the full bot at: https://store.novaplex.xyz         ║
+# ╚═══════════════════════════════════════════════════════════════╝
+
+# ── Source Code (HIDDEN) ──
+src/
+index.js
+scripts/
+
+# ── Dashboard (HIDDEN) ──
+dashboard/src/
+dashboard/index.html
+dashboard/vite.config.js
+dashboard/eslint.config.js
+dashboard/tailwind.config.js
+dashboard/postcss.config.js
+dashboard/package.json
+dashboard/package-lock.json
+dashboard/bun.lock
+dashboard/bun.lockb
+dashboard/.gitignore
+dashboard/README.md
+
+# ── Build Output (HIDDEN) ──
+dist/
+dashboard/dist/
+release/
+
+# ── Dependencies (HIDDEN) ──
 node_modules/
 dashboard/node_modules/
 
-# Environment
+# ── Environment (HIDDEN) ──
 .env
 .env.local
 
-# Build
-dist/
-dashboard/dist/
+# ── Database (HIDDEN) ──
+prisma/migrations/
+prisma.config.ts
 
-# Logs
+# ── Logs (HIDDEN) ──
 logs/
 *.log
 
-# Prisma
-prisma/migrations/
-
-# IDE
+# ── IDE ──
 .idea/
 .vscode/
 *.swp
 *.swo
 
-# OS
+# ── OS ──
 .DS_Store
 Thumbs.db
 
-# Misc
+# ── Misc ──
 *.tgz
 .cache/
+bun.lock
+bun.lockb
+todo.md

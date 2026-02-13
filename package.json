@@ -10,17 +10,24 @@
     "dev:dashboard": "cd dashboard && bun run dev",
     "build": "bun run db:generate && cd dashboard && bun run build",
     "build:dashboard": "cd dashboard && bun run build",
-    "start": "bun run build && NODE_ENV=production bun run index.js",
+    "start": "NODE_ENV=production bun run index.js",
+    "start:prod": "bun run build && NODE_ENV=production bun run index.js",
     "serve": "NODE_ENV=production bun run index.js",
     "db:generate": "bunx prisma generate",
     "db:push": "bunx prisma db push",
     "db:migrate": "bunx prisma migrate deploy",
     "db:migrate:dev": "bunx prisma migrate dev",
     "db:studio": "bunx prisma studio",
+    "release": "node scripts/release.js",
     "commands:deploy": "bun run src/bot/deploy-commands.js"
   },
-  "keywords": ["discord", "bot", "dashboard", "astra"],
-  "author": "Astra Team",
+  "keywords": [
+    "discord",
+    "bot",
+    "dashboard",
+    "astra"
+  ],
+  "author": "XSaitoKungX",
   "license": "MIT",
   "engines": {
     "node": ">=20.0.0"
@@ -28,10 +35,12 @@
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
     "@prisma/adapter-pg": "^7.3.0",
-    "@prisma/client": "^7.3.0",
+    "@prisma/client": "^7.4.0",
+    "canvacord": "^6.0.4",
     "chalk": "^5.6.2",
     "compression": "^1.8.1",
     "concurrently": "^9.2.1",
+    "connect-pg-simple": "^10.0.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "discord.js": "14.25.1",
@@ -39,11 +48,14 @@
     "express": "^5.2.1",
     "express-session": "^1.19.0",
     "helmet": "^8.1.0",
+    "ioredis": "^5.9.3",
+    "node-machine-id": "^1.1.12",
     "pg": "^8.18.0",
     "shoukaku": "^4.2.0",
     "winston": "^3.19.0"
   },
   "devDependencies": {
-    "prisma": "^7.3.0"
+    "javascript-obfuscator": "^5.3.0",
+    "prisma": "^7.4.0"
   }
 }
