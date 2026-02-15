@@ -33,7 +33,7 @@
 | **Moderation** | AutoMod engine (anti-spam, anti-link, anti-invite, bad words, caps & emoji filter), warnings, kicks, bans, timeouts, mod log, audit log |
 | **Leveling** | Message & voice XP tracking, custom rank cards (themes, colors, backgrounds), leaderboards, level-up announcements, role rewards, XP multipliers |
 | **Economy** | Full currency system — daily rewards, work, robbery, banking with interest, custom shop items, inventory, streaks |
-| **Music** | Lavalink-powered — YouTube, Spotify, SoundCloud, queue management, filters, 24/7 mode, DJ roles |
+| **Music** | Lavalink-powered — YouTube, Spotify, SoundCloud, platform selection, auto-fallback, queue management, filters, 24/7 mode, DJ roles |
 | **Welcome** | Custom welcome/leave messages with embed builder, auto-roles, member screening |
 | **Tickets** | Ticket system with categories, transcripts, staff roles, auto-close timers |
 | **Temp Voice** | Dynamic voice channels — custom names, user limits, permissions |
@@ -52,6 +52,8 @@
 - **Global Leaderboards** — Cross-server rankings for XP and economy
 - **Embed Builder** — Visual editor for welcome/level-up messages
 - **Shop Manager** — Create and manage economy items with drag-and-drop
+- **Bot Owner Panel** — Owner-only settings page for bot name, language, status, activity, rotation
+- **Activity Rotation** — Cycle through multiple activities with placeholders ({servers}, {users}, {ping}, etc.)
 - **Mobile Responsive** — Fully optimized for all screen sizes
 - **Multi-Language** — i18n support (English, German, more coming)
 - **SEO Optimized** — Open Graph, Twitter Cards, meta tags
@@ -101,7 +103,7 @@ astra-v2/
 │   └── schema.prisma         # Database schema (30+ models)
 ├── src/
 │   ├── api/                  # Express API server (routes, middleware, security)
-│   ├── bot/                  # Discord.js bot (43+ commands, 11 events)
+│   ├── bot/                  # Discord.js bot (45+ commands, 11 events)
 │   ├── cache/                # Redis caching layer
 │   ├── database/             # Prisma client
 │   ├── i18n/                 # Internationalization (en, de)

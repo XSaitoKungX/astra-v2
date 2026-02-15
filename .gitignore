@@ -54,9 +54,14 @@ logs/
 .DS_Store
 Thumbs.db
 
+# ── Server Config (HIDDEN) ──
+nginx/
+
 # ── Misc ──
 *.tgz
 .cache/
 bun.lock
 bun.lockb
+package-lock.json
 todo.md
+public/

@@ -23,11 +23,18 @@ model Guild {
   modLogChannel   String?
   welcomeChannel  String?
   goodbyeChannel  String?
-  logChannel      String?
+  logChannel      String?  // legacy — fallback for all events
   verifyChannel   String?
   verifyRole      String?
   muteRole        String?
   djRole          String?
+
+  // Per-event log channels
+  logMessageEvents  String?  // message edit/delete
+  logMemberEvents   String?  // join/leave/role changes
+  logVoiceEvents    String?  // voice join/leave/move
+  logServerEvents   String?  // channel/role/server changes
+  logModEvents      String?  // mod actions (ban/kick/timeout/warn)
 
   // Relations
   commandLogs CommandLog[]
@@ -59,22 +66,66 @@ model CommandLog {
 
 // ─── AutoMod Settings ─────────────────────────────────────────────
 model AutoMod {
-  id              String  @id // Guild ID
-  enabled         Boolean @default(false)
-  antiSpam        Boolean @default(false)
-  antiSpamLimit   Int     @default(5)     // messages per interval
-  antiSpamInterval Int    @default(5)     // seconds
-  antiLink        Boolean @default(false)
-  antiInvite      Boolean @default(false)
-  badWords        Boolean @default(false)
-  badWordsList    String  @default("[]")  // JSON array
-  capsFilter      Boolean @default(false)
-  capsThreshold   Int     @default(70)    // percentage
-  emojiFilter     Boolean @default(false)
-  emojiLimit      Int     @default(10)
+  id               String  @id // Guild ID
+  enabled          Boolean @default(false)
+
+  // Anti-Spam
+  antiSpam             Boolean @default(false)
+  antiSpamLimit        Int     @default(5)     // messages per interval
+  antiSpamInterval     Int     @default(5)     // seconds
+  antiSpamExemptRoles  String  @default("[]")  // JSON array
+  antiSpamExemptChannels String @default("[]") // JSON array
+
+  // Anti-Link
+  antiLink             Boolean @default(false)
+  antiLinkMode         String  @default("blacklist") // "blacklist" or "whitelist"
+  antiLinkList         String  @default("[]")  // JSON array of domains/URLs
+  antiLinkExemptRoles  String  @default("[]")
+  antiLinkExemptChannels String @default("[]")
+
+  // Anti-Invite
+  antiInvite             Boolean @default(false)
+  antiInviteMode         String  @default("blacklist") // "blacklist" or "whitelist"
+  antiInviteList         String  @default("[]")  // JSON array of invite codes/server IDs
+  antiInviteExemptRoles  String  @default("[]")
+  antiInviteExemptChannels String @default("[]")
+
+  // Bad Words
+  badWords             Boolean @default(false)
+  badWordsList         String  @default("[]")  // JSON array
+  badWordsExemptRoles  String  @default("[]")
+  badWordsExemptChannels String @default("[]")
+
+  // Caps Filter
+  capsFilter             Boolean @default(false)
+  capsThreshold          Int     @default(70)    // percentage
+  capsMinLength          Int     @default(10)    // min message length to check
+  capsExemptRoles        String  @default("[]")
+  capsExemptChannels     String  @default("[]")
+
+  // Emoji Filter
+  emojiFilter             Boolean @default(false)
+  emojiLimit              Int     @default(10)
+  emojiExemptRoles        String  @default("[]")
+  emojiExemptChannels     String  @default("[]")
+
+  // Mention Spam
+  mentionSpam             Boolean @default(false)
+  mentionSpamLimit        Int     @default(5)    // max mentions per message
+  mentionSpamExemptRoles  String  @default("[]")
+  mentionSpamExemptChannels String @default("[]")
+
+  // Duplicate Messages
+  duplicateFilter             Boolean @default(false)
+  duplicateFilterCount        Int     @default(3)    // same message X times
+  duplicateFilterInterval     Int     @default(60)   // within X seconds
+  duplicateFilterExemptRoles  String  @default("[]")
+  duplicateFilterExemptChannels String @default("[]")
+
+  // Global settings
   logChannel      String?
-  exemptRoles     String  @default("[]")  // JSON array of role IDs
-  exemptChannels  String  @default("[]")  // JSON array of channel IDs
+  exemptRoles     String  @default("[]")  // JSON array — global exempt roles (legacy, still checked)
+  exemptChannels  String  @default("[]")  // JSON array — global exempt channels (legacy, still checked)
 
   @@map("automod")
 }
@@ -445,6 +496,24 @@ model EconomyTransaction {
   @@index([guildId, createdAt])
   @@index([guildId, type])
   @@map("economy_transactions")
+}
+
+// ─── Bot Settings (global, owner-only) ──────────────────────────
+model BotSettings {
+  id                String  @id @default("default") // singleton row
+  name              String  @default("Astra")
+  language          String  @default("en")
+  status            String  @default("online")       // online, idle, dnd, invisible
+  activityType      String  @default("PLAYING")     // PLAYING, LISTENING, WATCHING, STREAMING, COMPETING
+  activityMessage   String  @default("{servers} servers | /help")
+  activityRotation  Boolean @default(false)           // rotate through multiple activities
+  activityInterval  Int     @default(30)              // seconds between rotation
+  activities        String  @default("[]")            // JSON array of { type, message }
+  streamingUrl      String? // required if activityType is STREAMING
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("bot_settings")
 }
 
 // ─── Bot Stats (aggregated) ─────────────────────────────────────

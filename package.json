@@ -19,7 +19,9 @@
     "db:migrate:dev": "bunx prisma migrate dev",
     "db:studio": "bunx prisma studio",
     "release": "node scripts/release.js",
-    "commands:deploy": "bun run src/bot/deploy-commands.js"
+    "commands:deploy": "bun run src/bot/deploy-commands.js",
+    "watch": "bun run scripts/watch.js",
+    "deploy:dashboard": "bash scripts/deploy-dashboard.sh"
   },
   "keywords": [
     "discord",
