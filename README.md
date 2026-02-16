@@ -26,18 +26,18 @@
 
 ## ✨ Features
 
-### 🤖 Bot — 43+ Slash Commands
+### 🤖 Bot — 48+ Slash Commands
 
 | Category | Highlights |
 |----------|-----------|
 | **Moderation** | AutoMod engine (anti-spam, anti-link, anti-invite, bad words, caps & emoji filter), warnings, kicks, bans, timeouts, mod log, audit log |
 | **Leveling** | Message & voice XP tracking, custom rank cards (themes, colors, backgrounds), leaderboards, level-up announcements, role rewards, XP multipliers |
 | **Economy** | Full currency system — daily rewards, work, robbery, banking with interest, custom shop items, inventory, streaks |
-| **Music** | Lavalink-powered — YouTube, Spotify, SoundCloud, platform selection, auto-fallback, queue management, filters, 24/7 mode, DJ roles |
+| **Music** | Lavalink-powered — YouTube, Spotify, SoundCloud, platform selection, auto-fallback, queue management, filters, 24/7 mode, DJ roles, **Discord.js Components v2 UI** |
 | **Welcome** | Custom welcome/leave messages with embed builder, auto-roles, member screening |
 | **Tickets** | Ticket system with categories, transcripts, staff roles, auto-close timers |
 | **Temp Voice** | Dynamic voice channels — custom names, user limits, permissions |
-| **Giveaways** | Timed giveaways, role requirements, multiple winners, rerolls |
+| **Giveaways** | Timed giveaways, role requirements, multiple winners, rerolls, **Discord.js Components v2 UI** |
 | **Reaction Roles** | Button roles, dropdown menus, reaction roles with custom embeds |
 | **AI** | AI-powered chat, image generation, conversation memory |
 | **Security** | Anti-raid, verification, Cloudflare Turnstile bot protection |
@@ -75,7 +75,7 @@
 | Layer | Technology |
 |-------|-----------|
 | **Runtime** | [Bun](https://bun.sh) (Node.js 20+ compatible) |
-| **Bot Framework** | [Discord.js v14](https://discord.js.org) |
+| **Bot Framework** | [Discord.js v14](https://discord.js.org) with **Components v2** |
 | **API Server** | [Express v5](https://expressjs.com) |
 | **Database** | [PostgreSQL](https://www.postgresql.org) (Neon) + [Prisma 7](https://prisma.io) |
 | **Cache** | [Redis](https://redis.io) via ioredis (optional) |
@@ -103,7 +103,7 @@ astra-v2/
 │   └── schema.prisma         # Database schema (30+ models)
 ├── src/
 │   ├── api/                  # Express API server (routes, middleware, security)
-│   ├── bot/                  # Discord.js bot (45+ commands, 11 events)
+│   ├── bot/                  # Discord.js bot (48+ commands, 11 events)
 │   ├── cache/                # Redis caching layer
 │   ├── database/             # Prisma client
 │   ├── i18n/                 # Internationalization (en, de)
