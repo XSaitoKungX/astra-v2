@@ -500,20 +500,225 @@ model EconomyTransaction {
 
 // ─── Bot Settings (global, owner-only) ──────────────────────────
 model BotSettings {
-  id                String  @id @default("default") // singleton row
-  name              String  @default("Astra")
-  language          String  @default("en")
-  status            String  @default("online")       // online, idle, dnd, invisible
-  activityType      String  @default("PLAYING")     // PLAYING, LISTENING, WATCHING, STREAMING, COMPETING
-  activityMessage   String  @default("{servers} servers | /help")
-  activityRotation  Boolean @default(false)           // rotate through multiple activities
-  activityInterval  Int     @default(30)              // seconds between rotation
-  activities        String  @default("[]")            // JSON array of { type, message }
-  streamingUrl      String? // required if activityType is STREAMING
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id                   String  @id @default("default") // singleton row
+  name                 String  @default("Astra")
+  language             String  @default("en")
+  status               String  @default("online")       // online, idle, dnd, invisible
+  activityType         String  @default("PLAYING")     // PLAYING, LISTENING, WATCHING, STREAMING, COMPETING
+  activityMessage      String  @default("{servers} servers | /help")
+  activityRotation     Boolean @default(false)           // rotate through multiple activities
+  activityInterval     Int     @default(30)              // seconds between rotation
+  activityRandomOrder  Boolean @default(false)           // random rotation instead of sequential
+  activities           String  @default("[]")            // JSON array of { type, message }
+  streamingUrl         String? // required if activityType is STREAMING
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 
   @@map("bot_settings")
+}
+
+// ─── Server Team Members (custom team management) ───────────────
+model ServerTeamMember {
+  id         Int      @id @default(autoincrement())
+  serverId   String   // Discord Guild ID
+  userId     String   // Discord User ID
+  roleLabel  String   // e.g. "Owner", "Admin", "Moderator", "Support", custom label
+  category   String   @default("Staff") // grouping category e.g. "Management", "Moderation", "Support"
+  order      Int      @default(0)       // sort order within category
+  addedBy    String   // who added this member (userId)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([serverId, userId]) // one entry per user per server
+  @@index([serverId])
+  @@index([serverId, category])
+  @@map("server_team_members")
+}
+
+// ─── Ticket Settings (per-guild) ────────────────────────────────
+model TicketSettings {
+  id              String  @id // Guild ID
+  enabled         Boolean @default(false)
+  categoryId      String? // Discord category channel for tickets
+  logChannel      String? // Channel for ticket logs
+  transcriptChannel String? // Channel for transcript posts
+  staffRoles      String  @default("[]") // JSON array of role IDs
+  maxOpen         Int     @default(3)    // max open tickets per user
+  dmOnClose       Boolean @default(true) // DM user transcript on close
+  autoClose       Boolean @default(false)
+  autoCloseHours  Int     @default(48)   // hours of inactivity before auto-close
+  closeConfirm    Boolean @default(true) // require confirmation to close
+  namingScheme    String  @default("ticket-{number}") // {number}, {user}, {topic}
+  welcomeMessage          String? @db.Text // custom message when ticket opens
+  welcomeMessageMode      String  @default("message") // message, embed, both
+  welcomeEmbedTitle       String? // embed title for welcome message
+  welcomeEmbedDescription String? @db.Text // embed description for welcome message
+  welcomeEmbedColor       String  @default("#7C3AED") // embed color for welcome message
+
+  panels TicketPanel[]
+
+  @@map("ticket_settings")
+}
+
+// ─── Ticket Panels (embed panels with buttons to open tickets) ──
+model TicketPanel {
+  id          Int      @id @default(autoincrement())
+  guildId     String
+  channelId   String   // channel where panel is posted
+  messageId   String?  // Discord message ID of the panel
+  title       String   @default("Support Tickets")
+  description String?  @db.Text
+  color       String   @default("#7C3AED")
+  emoji       String   @default("🎫")
+  buttonLabel     String   @default("Open Ticket")
+  buttonStyle     String   @default("PRIMARY") // PRIMARY, SECONDARY, SUCCESS, DANGER
+  topic           String   @default("general") // ticket category/topic
+  panelMode       String   @default("embed") // message, embed, both
+  interactionType String   @default("button") // button, reaction, dropdown
+  createdAt   DateTime @default(now())
+
+  settings   TicketSettings   @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  tickets    Ticket[]
+  categories TicketCategory[]
+
+  @@index([guildId])
+  @@index([guildId, channelId])
+  @@map("ticket_panels")
+}
+
+// ─── Ticket Categories (per-panel, e.g. Support, Bewerbung, Bug Report) ──
+model TicketCategory {
+  id          Int      @id @default(autoincrement())
+  panelId     Int
+  name        String   // e.g. "Support", "Bewerbung", "Bug Report"
+  emoji       String   @default("🎫")
+  description String?  // shown in dropdown description
+  style       String   @default("PRIMARY") // button style: PRIMARY, SECONDARY, SUCCESS, DANGER
+  categoryId  String?  // Discord category channel override (null = use panel default)
+  order       Int      @default(0) // display order
+  createdAt   DateTime @default(now())
+
+  panel   TicketPanel @relation(fields: [panelId], references: [id], onDelete: Cascade)
+  tickets Ticket[]
+
+  @@index([panelId])
+  @@map("ticket_categories")
+}
+
+// ─── Tickets ────────────────────────────────────────────────────
+model Ticket {
+  id          Int      @id @default(autoincrement())
+  guildId     String
+  channelId   String   @unique // the ticket channel
+  userId      String   // who opened the ticket
+  panelId     Int?     // which panel created it (null = manual)
+  ticketCategoryId Int? // which category within the panel
+  number      Int      // ticket number (per-guild sequential)
+  topic       String   @default("general")
+  status      String   @default("open") // open, claimed, closed
+  claimedBy   String?  // staff member who claimed
+  closedBy    String?  // who closed the ticket
+  closedAt    DateTime?
+  reason      String?  // close reason
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  panel          TicketPanel?    @relation(fields: [panelId], references: [id], onDelete: SetNull)
+  ticketCategory TicketCategory? @relation(fields: [ticketCategoryId], references: [id], onDelete: SetNull)
+  transcript     TicketTranscript?
+
+  @@index([guildId])
+  @@index([guildId, userId])
+  @@index([guildId, status])
+  @@index([guildId, number])
+  @@map("tickets")
+}
+
+// ─── Ticket Transcripts ─────────────────────────────────────────
+model TicketTranscript {
+  id          Int      @id @default(autoincrement())
+  ticketId    Int      @unique
+  guildId     String
+  userId      String   // ticket opener
+  channelName String
+  messageCount Int     @default(0)
+  html        String   @db.Text // full HTML transcript
+  messages    String?  @db.Text // JSON array of message objects for React rendering
+  createdAt   DateTime @default(now())
+
+  ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([guildId])
+  @@index([guildId, userId])
+  @@map("ticket_transcripts")
+}
+
+// ─── Giveaways ──────────────────────────────────────────────────
+model Giveaway {
+  id            Int      @id @default(autoincrement())
+  guildId       String
+  channelId     String
+  messageId     String?  // Discord message ID
+  hostId        String   // who created the giveaway
+  prize         String
+  description   String?  @db.Text
+  winnerCount   Int      @default(1)
+  emoji         String   @default("🎉")
+  bannerUrl     String?  @db.Text // custom banner image URL (uploaded via dashboard)
+  status        String   @default("active") // active, ended, cancelled
+  startsAt      DateTime @default(now())
+  endsAt        DateTime
+  endedAt       DateTime?
+
+  // Requirements
+  requiredRoles    String  @default("[]") // JSON array of role IDs (must have ANY)
+  blacklistRoles   String  @default("[]") // JSON array of role IDs
+  blacklistUsers   String  @default("[]") // JSON array of user IDs
+  bonusRoles       String  @default("[]") // JSON array of { roleId, entries }
+  minServerJoinDays Int    @default(0)    // min days in server
+  minMessages      Int     @default(0)    // min messages in server
+  minInvites       Int     @default(0)    // min invites
+  minLevel         Int     @default(0)    // min level required
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  entries  GiveawayEntry[]
+  winners  GiveawayWinner[]
+
+  @@index([guildId])
+  @@index([guildId, status])
+  @@index([status, endsAt])
+  @@map("giveaways")
+}
+
+// ─── Giveaway Entries ───────────────────────────────────────────
+model GiveawayEntry {
+  id          Int      @id @default(autoincrement())
+  giveawayId  Int
+  userId      String
+  entries     Int      @default(1) // bonus entries from roles
+  createdAt   DateTime @default(now())
+
+  giveaway Giveaway @relation(fields: [giveawayId], references: [id], onDelete: Cascade)
+
+  @@unique([giveawayId, userId])
+  @@index([giveawayId])
+  @@map("giveaway_entries")
+}
+
+// ─── Giveaway Winners ───────────────────────────────────────────
+model GiveawayWinner {
+  id          Int      @id @default(autoincrement())
+  giveawayId  Int
+  userId      String
+  rerolled    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  giveaway Giveaway @relation(fields: [giveawayId], references: [id], onDelete: Cascade)
+
+  @@index([giveawayId])
+  @@map("giveaway_winners")
 }
 
 // ─── Bot Stats (aggregated) ─────────────────────────────────────
