@@ -27,6 +27,7 @@ dashboard/README.md
 dist/
 dashboard/dist/
 release/
+release-fullsource/
 
 # ── Dependencies (HIDDEN) ──
 node_modules/
@@ -44,6 +45,9 @@ prisma.config.ts
 logs/
 *.log
 
+# ── License cache (lifetime flag, machine-specific) ──
+.license-cache/
+
 # ── IDE ──
 .idea/
 .vscode/
@@ -59,6 +63,7 @@ nginx/
 
 # ── Misc ──
 *.tgz
+*.zip
 .cache/
 bun.lock
 bun.lockb

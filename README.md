@@ -26,7 +26,7 @@
 
 ## ✨ Features
 
-### 🤖 Bot — 48+ Slash Commands
+### 🤖 Bot — 49+ Slash Commands
 
 | Category | Highlights |
 |----------|-----------|
@@ -41,6 +41,8 @@
 | **Reaction Roles** | Button roles, dropdown menus, reaction roles with custom embeds |
 | **AI** | AI-powered chat, image generation, conversation memory |
 | **Security** | Anti-raid, verification, Cloudflare Turnstile bot protection |
+| **Social Feeds** | Twitch, YouTube, Twitter/X notifications — live streams, new videos, tweets with custom messages & role pings |
+| **Vote Rewards** | Bot list integration (Top.gg, DBL, Discords.com, etc.) — vote tracking, temporary roles, custom announcements with embed builder |
 
 ### 🎨 Dashboard — Full Web Management
 
@@ -52,8 +54,10 @@
 - **Global Leaderboards** — Cross-server rankings for XP and economy
 - **Embed Builder** — Visual editor for welcome/level-up messages
 - **Shop Manager** — Create and manage economy items with drag-and-drop
-- **Bot Owner Panel** — Owner-only settings page for bot name, language, status, activity, rotation
+- **Bot Owner Panel** — Owner-only settings page for bot name, language, status, activity, rotation, vote platforms, integrations
 - **Activity Rotation** — Cycle through multiple activities with placeholders ({servers}, {users}, {ping}, etc.)
+- **Vote System** — Configure vote platforms, rewards, announcements with embed/message/Components v2 preview
+- **Social Feeds** — Manage Twitch, YouTube, Twitter/X notifications per server with live preview
 - **Mobile Responsive** — Fully optimized for all screen sizes
 - **Multi-Language** — i18n support (English, German, more coming)
 - **SEO Optimized** — Open Graph, Twitter Cards, meta tags

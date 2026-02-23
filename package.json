@@ -1,6 +1,6 @@
 {
   "name": "astra-bot",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Astra v2 - All-in-One Discord Bot with Web Dashboard",
   "main": "index.js",
   "type": "module",
@@ -20,6 +20,7 @@
     "db:migrate:dev": "bunx prisma migrate dev",
     "db:studio": "bunx prisma studio",
     "release": "node scripts/release.js",
+    "release:fullsource": "node scripts/release-fullsource.js",
     "commands:deploy": "bun run src/bot/deploy-commands.js",
     "watch": "bun run scripts/watch.js",
     "deploy:dashboard": "bash scripts/deploy-dashboard.sh"
@@ -38,7 +39,7 @@
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
     "@prisma/adapter-pg": "^7.3.0",
-    "@prisma/client": "^7.4.0",
+    "@prisma/client": "^7.4.1",
     "canvacord": "^6.0.4",
     "chalk": "^5.6.2",
     "compression": "^1.8.1",
@@ -47,6 +48,7 @@
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "discord.js": "14.25.1",
+    "discordplace-sync": "^1.8.10",
     "dotenv": "^17.2.4",
     "express": "^5.2.1",
     "express-session": "^1.19.0",
@@ -54,12 +56,14 @@
     "ioredis": "^5.9.3",
     "js-yaml": "^4.1.1",
     "node-machine-id": "^1.1.12",
+    "nodemailer": "^8.0.1",
     "pg": "^8.18.0",
     "shoukaku": "^4.2.0",
+    "web-push": "^3.6.7",
     "winston": "^3.19.0"
   },
   "devDependencies": {
     "javascript-obfuscator": "^5.3.0",
-    "prisma": "^7.4.0"
+    "prisma": "^7.4.1"
   }
 }

@@ -35,6 +35,9 @@ model Guild {
   logVoiceEvents    String?  // voice join/leave/move
   logServerEvents   String?  // channel/role/server changes
   logModEvents      String?  // mod actions (ban/kick/timeout/warn)
+  logInviteEvents   String?  // invite create/delete
+  logEmojiEvents    String?  // emoji/sticker create/update/delete
+  logThreadEvents   String?  // thread create/update/delete/archive
 
   // Relations
   commandLogs CommandLog[]
@@ -42,6 +45,66 @@ model Guild {
   modActions  ModAction[]
 
   @@map("guilds")
+}
+
+// ─── Welcome & Goodbye Settings ─────────────────────────────────
+model WelcomeSettings {
+  id              String  @id // Guild ID
+  
+  // Welcome
+  welcomeEnabled  Boolean @default(false)
+  welcomeChannel  String?
+  welcomeMessage  String? @db.Text // plain text message (supports placeholders)
+  welcomeEmbed    Boolean @default(true)
+  welcomeEmbedAuthorName  String?
+  welcomeEmbedAuthorIcon  String? // URL
+  welcomeEmbedAuthorUrl   String? // URL
+  welcomeEmbedTitle       String?
+  welcomeEmbedUrl         String? // title hyperlink
+  welcomeEmbedDescription String? @db.Text
+  welcomeEmbedColor       String  @default("#7C3AED")
+  welcomeEmbedFields      String  @default("[]") @db.Text // JSON array of { name, value, inline }
+  welcomeEmbedImage       String? // URL for large image
+  welcomeEmbedThumbnail   Boolean @default(true) // show user avatar as thumbnail
+  welcomeEmbedThumbnailUrl String? // custom thumbnail URL (overrides avatar)
+  welcomeEmbedFooter      String?
+  welcomeEmbedFooterIcon  String? // URL
+  welcomeEmbedTimestamp   Boolean @default(false)
+  welcomeUseComponentsV2  Boolean @default(true) // true = Components v2, false = legacy embed
+  welcomeDm       Boolean @default(false)
+  welcomeDmMessage String? @db.Text
+  welcomePing     Boolean @default(false) // ping user in welcome message
+  
+  // Auto-Role
+  autoRoleEnabled Boolean @default(false)
+  autoRoles       String  @default("[]") // JSON array of role IDs
+  autoRoleDelay   Int     @default(0) // seconds delay before assigning roles
+  
+  // Goodbye
+  goodbyeEnabled  Boolean @default(false)
+  goodbyeChannel  String?
+  goodbyeMessage  String? @db.Text
+  goodbyeEmbed    Boolean @default(true)
+  goodbyeEmbedAuthorName  String?
+  goodbyeEmbedAuthorIcon  String?
+  goodbyeEmbedAuthorUrl   String?
+  goodbyeEmbedTitle       String?
+  goodbyeEmbedUrl         String?
+  goodbyeEmbedDescription String? @db.Text
+  goodbyeEmbedColor       String  @default("#ED4245")
+  goodbyeEmbedFields      String  @default("[]") @db.Text // JSON array of { name, value, inline }
+  goodbyeEmbedImage       String?
+  goodbyeEmbedThumbnail   Boolean @default(true)
+  goodbyeEmbedThumbnailUrl String?
+  goodbyeEmbedFooter      String?
+  goodbyeEmbedFooterIcon  String?
+  goodbyeEmbedTimestamp   Boolean @default(false)
+  goodbyeUseComponentsV2  Boolean @default(true) // true = Components v2, false = legacy embed
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("welcome_settings")
 }
 
 // ─── Command Logs ───────────────────────────────────────────────
@@ -71,6 +134,7 @@ model AutoMod {
 
   // Anti-Spam
   antiSpam             Boolean @default(false)
+  antiSpamAction       String  @default("delete") // "delete", "warn", "timeout", "kick"
   antiSpamLimit        Int     @default(5)     // messages per interval
   antiSpamInterval     Int     @default(5)     // seconds
   antiSpamExemptRoles  String  @default("[]")  // JSON array
@@ -78,6 +142,7 @@ model AutoMod {
 
   // Anti-Link
   antiLink             Boolean @default(false)
+  antiLinkAction       String  @default("delete") // "delete", "warn", "timeout", "kick"
   antiLinkMode         String  @default("blacklist") // "blacklist" or "whitelist"
   antiLinkList         String  @default("[]")  // JSON array of domains/URLs
   antiLinkExemptRoles  String  @default("[]")
@@ -85,6 +150,7 @@ model AutoMod {
 
   // Anti-Invite
   antiInvite             Boolean @default(false)
+  antiInviteAction       String  @default("delete") // "delete", "warn", "timeout", "kick"
   antiInviteMode         String  @default("blacklist") // "blacklist" or "whitelist"
   antiInviteList         String  @default("[]")  // JSON array of invite codes/server IDs
   antiInviteExemptRoles  String  @default("[]")
@@ -92,12 +158,14 @@ model AutoMod {
 
   // Bad Words
   badWords             Boolean @default(false)
+  badWordsAction       String  @default("delete") // "delete", "warn", "timeout", "kick"
   badWordsList         String  @default("[]")  // JSON array
   badWordsExemptRoles  String  @default("[]")
   badWordsExemptChannels String @default("[]")
 
   // Caps Filter
   capsFilter             Boolean @default(false)
+  capsFilterAction       String  @default("delete") // "delete", "warn", "timeout", "kick"
   capsThreshold          Int     @default(70)    // percentage
   capsMinLength          Int     @default(10)    // min message length to check
   capsExemptRoles        String  @default("[]")
@@ -105,18 +173,21 @@ model AutoMod {
 
   // Emoji Filter
   emojiFilter             Boolean @default(false)
+  emojiFilterAction       String  @default("delete") // "delete", "warn", "timeout", "kick"
   emojiLimit              Int     @default(10)
   emojiExemptRoles        String  @default("[]")
   emojiExemptChannels     String  @default("[]")
 
   // Mention Spam
   mentionSpam             Boolean @default(false)
+  mentionSpamAction       String  @default("delete") // "delete", "warn", "timeout", "kick"
   mentionSpamLimit        Int     @default(5)    // max mentions per message
   mentionSpamExemptRoles  String  @default("[]")
   mentionSpamExemptChannels String @default("[]")
 
   // Duplicate Messages
   duplicateFilter             Boolean @default(false)
+  duplicateFilterAction       String  @default("delete") // "delete", "warn", "timeout", "kick"
   duplicateFilterCount        Int     @default(3)    // same message X times
   duplicateFilterInterval     Int     @default(60)   // within X seconds
   duplicateFilterExemptRoles  String  @default("[]")
@@ -314,6 +385,8 @@ model LevelSettings {
   stackRoles          Boolean @default(true)  // keep previous role rewards
   noXpRoles           String  @default("[]")  // JSON array of role IDs that don't earn XP
   noXpChannels        String  @default("[]")  // JSON array of channel IDs where XP is disabled
+  xpBoostRoles        String  @default("[]")  // JSON array of {id, msgMultiplier, vcMultiplier}
+  xpBoostUsers        String  @default("[]")  // JSON array of {id, msgMultiplier, vcMultiplier}
 
   roleRewards LevelRoleReward[]
 
@@ -511,6 +584,54 @@ model BotSettings {
   activityRandomOrder  Boolean @default(false)           // random rotation instead of sequential
   activities           String  @default("[]")            // JSON array of { type, message }
   streamingUrl         String? // required if activityType is STREAMING
+
+  // ─── Vote Platforms ────────────────────────────────────────────
+  votePlatforms        String  @default("[]")            // JSON array of { platform, url, token, webhookSecret, enabled }
+  voteChannelId        String? // Discord channel for vote announcements
+  voteRoleId           String? // Role to give voters temporarily
+  voteRoleDuration     Int     @default(24)              // hours to keep vote role
+  voteDmEnabled        Boolean @default(true)            // DM thank-you on vote
+  voteDmMessage        String? @db.Text                  // Custom DM message (supports placeholders)
+  voteAnnounceType     String  @default("embed")          // embed, message, both, v2
+  voteAnnounceMessage  String? @db.Text                  // Plain text announcement message
+  voteEmbed            String? @db.Text                  // JSON embed config for vote announcements
+
+  // ─── DiscordPlace ──────────────────────────────────────────────
+  discordPlaceEnabled  Boolean @default(false)
+  discordPlaceApiKey   String? // API key for discordplace.com
+  discordPlaceSyncInterval Int @default(300)             // seconds between syncs
+
+  // ─── SMTP Email ────────────────────────────────────────────────
+  smtpEnabled          Boolean @default(false)
+  smtpHost             String?
+  smtpPort             Int     @default(587)
+  smtpSecure           Boolean @default(false)
+  smtpUser             String?
+  smtpPass             String?
+  smtpFrom             String?
+
+  // ─── VAPID Push ────────────────────────────────────────────────
+  vapidEnabled         Boolean @default(false)
+  vapidPublicKey       String?
+  vapidPrivateKey      String?
+  vapidSubject         String?
+
+  // ─── Social Links ──────────────────────────────────────────────
+  websiteUrl           String?
+  supportUrl           String?
+  docsUrl              String?
+  githubUrl            String?
+  twitterUrl           String?
+  youtubeUrl           String?
+  twitchUrl            String?
+  patreonUrl           String?
+  kofiUrl              String?
+
+  // ─── Embed Defaults ────────────────────────────────────────────
+  embedColor           String  @default("#7C3AED")
+  embedFooter          String?
+  embedThumbnail       Boolean @default(true)
+
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
 
@@ -719,6 +840,251 @@ model GiveawayWinner {
 
   @@index([giveawayId])
   @@map("giveaway_winners")
+}
+
+// ─── Temp Voice Settings (per-guild) ────────────────────────────
+model TempVoiceSettings {
+  id              String  @id // Guild ID
+  enabled         Boolean @default(false)
+  creatorChannelId String? // The "Join to Create" trigger channel
+  categoryId      String? // Discord category for temp channels
+  interfaceChannelId String? // Channel where the interface panel is posted
+  interfaceMessageId String? // Message ID of the interface panel
+  defaultName     String  @default("{user}'s Channel") // {user}, {game}, {count}
+  defaultLimit    Int     @default(0)  // 0 = unlimited
+  defaultBitrate  Int     @default(64000) // in bits
+  defaultRegion   String? // voice region override, null = auto
+
+  channels TempVoiceChannel[]
+
+  @@map("temp_voice_settings")
+}
+
+// ─── Temp Voice Channels (active temp channels) ─────────────────
+model TempVoiceChannel {
+  id          Int      @id @default(autoincrement())
+  guildId     String
+  channelId   String   @unique // Discord voice channel ID
+  ownerId     String   // who created/owns the channel
+  name        String?  // custom name (null = default)
+  userLimit   Int      @default(0)
+  locked      Boolean  @default(false) // privacy: locked = no one can join
+  hidden      Boolean  @default(false) // privacy: hidden from channel list
+  trusted     String   @default("[]") // JSON array of user IDs who can always join
+  blocked     String   @default("[]") // JSON array of user IDs who are blocked
+  bitrate     Int      @default(64000)
+  region      String?
+  createdAt   DateTime @default(now())
+
+  settings TempVoiceSettings @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  @@index([guildId])
+  @@index([guildId, ownerId])
+  @@index([channelId])
+  @@map("temp_voice_channels")
+}
+
+// ─── Temp Voice User Preferences (persisted per user+guild) ─────
+model TempVoiceUserPrefs {
+  id        Int     @id @default(autoincrement())
+  guildId   String
+  userId    String
+  name      String? // preferred channel name template
+  userLimit Int     @default(0)
+  bitrate   Int     @default(64000)
+  region    String?
+  locked    Boolean @default(false)
+  hidden    Boolean @default(false)
+
+  @@unique([guildId, userId])
+  @@index([guildId])
+  @@map("temp_voice_user_prefs")
+}
+
+// ─── Security Settings (per-guild) ──────────────────────────────
+model SecuritySettings {
+  id              String  @id // Guild ID
+
+  // ── Master toggle ──
+  enabled         Boolean @default(false)
+
+  // ── Verification ──
+  verifyEnabled       Boolean @default(false)
+  verifyChannel       String? // channel where verify panel lives
+  verifyRole          String  @default("[]") // JSON array of role IDs granted after verification
+  verifyRemoveRole    String? // optional: role removed after verification (e.g. "Unverified")
+  verifyLogChannel    String? // channel for verification logs
+  verifyStages        Int     @default(1)    // 1 = button only, 2 = button + captcha, 3 = button + captcha + age gate
+  verifyMinAge        Int     @default(7)    // min account age in days (for stage 3)
+  verifyTimeout       Int     @default(300)  // seconds before verification attempt expires
+  verifyPanelTitle      String  @default("Verification Required")
+  verifyPanelDesc       String? @db.Text
+  verifyPanelColor      String  @default("#7C3AED")
+  verifyPanelImage      String? // banner image URL
+  verifyPanelFooter     String?
+  verifyPanelFooterIcon String?
+  verifyPanelTimestamp  Boolean @default(false)
+  verifyPanelThumbnail  Boolean @default(true)
+  verifyPanelThumbnailUrl String?
+  verifyPanelAuthorName String?
+  verifyPanelAuthorIcon String?
+  verifyPanelAuthorUrl  String?
+  verifyMode            String  @default("link")  // "link" = web verify page, "discord" = in-Discord captcha modal
+  verifyDmOnFail      Boolean @default(true) // DM user if verification fails
+  verifyKickOnFail    Boolean @default(false) // kick user if they fail all attempts
+  verifyMaxAttempts   Int     @default(3)    // max captcha attempts before fail
+
+  // ── Risk Score Engine ──
+  riskEnabled         Boolean @default(true)
+  riskThresholdLow    Int     @default(30)   // 0–low = auto-verify
+  riskThresholdMed    Int     @default(60)   // low–med = require verification
+  riskThresholdHigh   Int     @default(80)   // med–high = quarantine, high+ = auto-kick
+  riskNoAvatar        Int     @default(15)   // score added if no avatar
+  riskNewAccount      Int     @default(25)   // score added if account < 7 days
+  riskSuspiciousName  Int     @default(10)   // score added for suspicious username patterns
+  riskAutoAction      String  @default("kick") // action for score > high threshold: "kick", "ban", "quarantine"
+
+  // ── Quarantine ──
+  quarantineEnabled   Boolean @default(false)
+  quarantineRole      String? // role that restricts all access
+  quarantineChannel   String? // channel quarantined users can see
+  quarantineAutoKick  Int     @default(0)    // auto-kick after X hours (0 = disabled)
+
+  // ── Anti-Raid ──
+  antiRaidEnabled     Boolean @default(false)
+  antiRaidThreshold   Int     @default(10)   // joins per interval to trigger
+  antiRaidInterval    Int     @default(10)   // seconds
+  antiRaidAction      String  @default("lockdown") // "lockdown", "verify_all", "quarantine_all"
+  antiRaidCooldown    Int     @default(300)  // seconds before auto-recovery
+  antiRaidDmAlert     Boolean @default(true) // DM server owner on raid
+  antiRaidAlertChannel String? // channel for raid alerts
+  antiRaidLevel       Int     @default(0)    // current raid level (0 = none, 1–3)
+
+  // ── Lockdown ──
+  lockdownActive      Boolean @default(false)
+  lockdownBy          String? // user ID who triggered lockdown
+  lockdownAt          DateTime?
+  lockdownReason      String?
+
+  // ── Alt Detection ──
+  altDetection        Boolean @default(false)
+  altMinAge           Int     @default(7)    // days — accounts younger get flagged
+  altAction           String  @default("flag") // "flag", "quarantine", "kick", "ban"
+
+  // ── Suspicious Patterns ──
+  suspiciousPatterns  String  @default("[]") // JSON array of regex patterns for usernames
+
+  // ── Relations ──
+  verifyAttempts VerificationAttempt[]
+  raidEvents     RaidEvent[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("security_settings")
+}
+
+// ─── Verification Attempts ──────────────────────────────────────
+model VerificationAttempt {
+  id          Int      @id @default(autoincrement())
+  guildId     String
+  userId      String
+  riskScore   Int      @default(0)
+  stage       Int      @default(1)    // which stage they're on
+  status      String   @default("pending") // pending, passed, failed, expired, kicked
+  method      String   @default("button")  // button, captcha, age_gate
+  attempts    Int      @default(0)    // captcha attempt count
+  ip          String?  // optional: for advanced tracking
+  metadata    String?  @db.Text // JSON: extra info (captcha answer, etc.)
+  startedAt   DateTime @default(now())
+  completedAt DateTime?
+
+  settings SecuritySettings @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  @@index([guildId])
+  @@index([guildId, userId])
+  @@index([guildId, status])
+  @@index([startedAt])
+  @@map("verification_attempts")
+}
+
+// ─── Raid Events ────────────────────────────────────────────────
+model RaidEvent {
+  id          Int      @id @default(autoincrement())
+  guildId     String
+  level       Int      @default(1)    // raid level 1–3
+  joinCount   Int      @default(0)    // joins that triggered this
+  action      String   // lockdown, verify_all, quarantine_all
+  triggeredBy String   @default("auto") // "auto" or user ID
+  resolvedBy  String?  // user ID who resolved, or "auto"
+  resolvedAt  DateTime?
+  userIds     String   @default("[]") // JSON array of user IDs involved
+  startedAt   DateTime @default(now())
+
+  settings SecuritySettings @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  @@index([guildId])
+  @@index([guildId, startedAt])
+  @@map("raid_events")
+}
+
+// ─── Bot Votes (Top.gg, DBL, etc.) ──────────────────────────────
+model BotVote {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  platform  String   // topgg, dbl, discords
+  type      String   @default("upvote") // upvote, test
+  isWeekend Boolean  @default(false)
+  query     String?  // optional query string from webhook
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([platform])
+  @@index([createdAt])
+  @@map("bot_votes")
+}
+
+// ─── Social Feed Subscriptions (per-guild Twitch/YouTube/Twitter notifications) ──
+model SocialFeed {
+  id          Int      @id @default(autoincrement())
+  guildId     String
+  platform    String   // twitch, youtube, twitter
+  platformId  String   // Twitch username, YouTube channel ID, Twitter handle
+  channelId   String   // Discord channel to post notifications
+  roleId      String?  // Optional role to ping
+  message     String?  @db.Text // Custom notification message template
+  enabled     Boolean  @default(true)
+  lastCheckId String?  // Last known stream/video/tweet ID to avoid duplicates
+  lastCheckAt DateTime? // When we last checked
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([guildId, platform, platformId])
+  @@index([guildId])
+  @@index([platform, enabled])
+  @@map("social_feeds")
+}
+
+// ─── Notification Settings (per-guild email/push config) ─────────
+model NotificationSettings {
+  id              String  @id // Guild ID
+  // Push notifications (VAPID)
+  pushEnabled     Boolean @default(false)
+  pushEndpoint    String? @db.Text
+  pushP256dh      String?
+  pushAuth        String?
+  // Email notifications (SMTP)
+  emailEnabled    Boolean @default(false)
+  emailAddress    String?
+  emailOnJoin     Boolean @default(false)
+  emailOnLeave    Boolean @default(false)
+  emailOnBan      Boolean @default(false)
+  emailOnReport   Boolean @default(false)
+  emailDigest     Boolean @default(false) // daily digest
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("notification_settings")
 }
 
 // ─── Bot Stats (aggregated) ─────────────────────────────────────
